@@ -1,1 +1,8 @@
-spring.application.name=db-online
+server:
+  http2:
+    enabled: on
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
