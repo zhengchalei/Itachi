@@ -1,8 +1,27 @@
 server:
   http2:
-    enabled: on
+    enabled: true
 spring:
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create-drop
     show-sql: true
+    generate-ddl: true
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: xiaoshitou
+    url: jdbc:postgresql://42.193.126.10:54320/itachi
+  security:
+    user:
+      name: user
+      password: 123456
+      roles: admin
+  data:
+    web:
+      pageable:
+        one-indexed-parameters: true
+logging:
+  level:
+    web: debug

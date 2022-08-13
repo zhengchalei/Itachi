@@ -4,7 +4,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.web.config.EnableSpringDataWebSupport
-
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContext
+import org.springframework.security.core.context.SecurityContextHolder
+import java.util.*
 import javax.persistence.EntityManager
 
 /**
@@ -16,7 +19,7 @@ import javax.persistence.EntityManager
  */
 @Configuration
 @EnableSpringDataWebSupport
-class QueryDslConfiguration {
+class JpaConfiguration {
 
     /**
      * Jpa query factory
@@ -25,5 +28,16 @@ class QueryDslConfiguration {
      */
     @Bean
     fun jpaQueryFactory(entityManager: EntityManager) = JPAQueryFactory(entityManager)
+
+    @Bean
+    fun auditorAware(): Optional<Long> {
+        return Optional.of(SecurityContextHolder.getContext())
+            .map(SecurityContext::getAuthentication)
+            .filter(Authentication::isAuthenticated)
+            .map(Authentication::getPrincipal)
+            .filter { it is SecurityUser }
+            .map { it as SecurityUser }
+            .map { it.id }
+    }
 
 }
