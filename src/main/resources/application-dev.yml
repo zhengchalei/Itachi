@@ -1,0 +1,16 @@
+logging:
+  level:
+    web: debug
+    io.github.zhengchalei: debug
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: xiaoshitou
+    url: jdbc:postgresql://42.193.126.10:54320/itachi
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    generate-ddl: true

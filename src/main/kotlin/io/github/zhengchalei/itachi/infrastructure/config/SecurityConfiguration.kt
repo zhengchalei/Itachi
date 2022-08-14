@@ -1,7 +1,11 @@
 package io.github.zhengchalei.itachi.infrastructure.config
 
+import io.github.zhengchalei.itachi.repository.UserRepository
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.Authentication
@@ -24,7 +28,10 @@ import java.util.*
  */
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = false)
 class SecurityConfiguration {
+
+    val log: Logger = LoggerFactory.getLogger(SecurityConfiguration::class.java)
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -41,20 +48,36 @@ class SecurityConfiguration {
 
 
     @Bean
-    fun userDetailsService(): UserDetailsService {
-        return UserDetailsService { username ->
-            SecurityUser(0L, username, passwordEncoder().encode("123456"), setOf(), setOf())
+    fun userDetailsService(userRepository: UserRepository): UserDetailsService {
+        return object : UserDetailsService {
+            /**
+             * Locates the user based on the username. In the actual implementation, the search
+             * may possibly be case sensitive, or case insensitive depending on how the
+             * implementation instance is configured. In this case, the `UserDetails`
+             * object that comes back may have a username that is of a different case than what
+             * was actually requested..
+             * @param username the username identifying the user whose data is required.
+             * @return a fully populated user record (never `null`)
+             * @throws UsernameNotFoundException if the user could not be found or the user has no
+             * GrantedAuthority
+             */
+            override fun loadUserByUsername(username: String): UserDetails {
+                val user = userRepository.findByUsername(username).orElseThrow { ServiceException("username not exists") }
+                return SecurityUser(user.id, username, user.password, setOf(), setOf())
+            }
+
         }
     }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
-        return UserPasswordEncoder()
+        log.debug("if you need default password: 123456, encoder: ${UserPasswordEncoder.Instance.encode("123456")}")
+        return UserPasswordEncoder.Instance
     }
 
 }
 
-class UserPasswordEncoder: BCryptPasswordEncoder() {
+class UserPasswordEncoder : BCryptPasswordEncoder() {
     companion object {
         val Instance = UserPasswordEncoder()
     }
